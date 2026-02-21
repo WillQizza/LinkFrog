@@ -1,9 +1,7 @@
 package main
 
-import (
-	"fmt"
-)
+import "github.com/willqizza/linkfrog/http"
 
 func main() {
-	fmt.Println("Hello World!")
+	http.StartServer()
 }
