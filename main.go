@@ -1,7 +1,7 @@
 package main
 
-import "github.com/willqizza/linkfrog/http"
+import "github.com/willqizza/linkfrog/backend"
 
 func main() {
-	http.StartServer()
+	backend.StartServer()
 }

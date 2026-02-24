@@ -10,8 +10,8 @@ func NewRouter() chi.Router {
 
 	router.Use(middleware.Logger)
 
-	router.Mount("/api", apiRouter())
-	router.Mount("/", rootRouter())
+	router.Mount("/api/links", linksRouter())
+	router.Mount("/api/auth", authRouter())
 
 	return router
 }

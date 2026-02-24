@@ -6,11 +6,11 @@ import (
 	"github.com/go-chi/chi"
 )
 
-func apiRouter() chi.Router {
+func authRouter() chi.Router {
 	router := chi.NewRouter()
 
 	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("welcome api"))
+		w.Write([]byte("auth api"))
 	})
 
 	return router
