@@ -4,6 +4,15 @@
         <title>LinkFrog</title>
     </head>
     <body>
+        <div >
+            <a href="/api/auth/google">Sign in with Google</a>
+        </div>
+    <script>
+        const params = new URLSearchParams(window.location.search);
 
+        if (params.get("error") === "unauthorized") {
+            alert("Your account is not authorized to access this app.");
+        }
+    </script>
     </body>
 </html>

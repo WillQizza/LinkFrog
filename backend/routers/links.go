@@ -13,5 +13,13 @@ func linksRouter() chi.Router {
 		w.Write([]byte("links api"))
 	})
 
+	router.Post("/shorten", func(w http.ResponseWriter, r *http.Request) {
+
+	})
+
+	router.Get("/redirect", func(w http.ResponseWriter, r *http.Request) {
+
+	})
+
 	return router
 }
