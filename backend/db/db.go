@@ -28,5 +28,18 @@ func initializeTables() error {
 		id    INT AUTO_INCREMENT PRIMARY KEY,
 		email VARCHAR(255) NOT NULL UNIQUE
 	)`)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = DB.Exec(`CREATE TABLE IF NOT EXISTS links (
+		id    INT AUTO_INCREMENT PRIMARY KEY,
+		owner INT NOT NULL,
+		path  VARCHAR(255) NOT NULL UNIQUE,
+		url   TEXT NOT NULL,
+		FOREIGN KEY (owner) REFERENCES users(id)
+	)`)
+
 	return err
 }

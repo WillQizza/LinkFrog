@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/go-chi/chi"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/willqizza/linkfrog/backend/db"
+	"github.com/willqizza/linkfrog/backend/utils"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
@@ -47,26 +47,13 @@ func generateState() (string, error) {
 	return base64.URLEncoding.EncodeToString(b), nil
 }
 
-func signJWT(user googleApiUserInfo) (string, error) {
-	secret := os.Getenv("JWT_SECRET")
-	claims := jwt.MapClaims{
-		"sub":   user.Sub,
-		"email": user.Email,
-		"name":  user.Name,
-		"exp":   time.Now().Add(24 * time.Hour).Unix(),
-		"iat":   time.Now().Unix(),
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(secret))
-}
-
 func handleGoogleLogin(w http.ResponseWriter, r *http.Request) {
 	state, err := generateState()
 	if err != nil {
 		http.Error(w, "failed to generate state", http.StatusInternalServerError)
 		return
 	}
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     "oauth_state",
 		Value:    state,
@@ -123,8 +110,8 @@ func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if user exists or if this is the admin user that needs to be added
-	var existingEmail string
-	err = db.DB.QueryRowContext(r.Context(), "SELECT email FROM users WHERE email = ?", googleUser.Email).Scan(&existingEmail)
+	var userId int64
+	err = db.DB.QueryRowContext(r.Context(), "SELECT id FROM users WHERE email = ?", googleUser.Email).Scan(&userId)
 	if err == sql.ErrNoRows {
 		// Check if any users exist at all
 		var count int
@@ -139,8 +126,15 @@ func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// First user is an admin user and can be inserted
-		if _, err = db.DB.ExecContext(r.Context(), "INSERT INTO users (email) VALUES (?)", googleUser.Email); err != nil {
+		insertResults, err := db.DB.ExecContext(r.Context(), "INSERT INTO users (email) VALUES (?)", googleUser.Email)
+		if err != nil {
 			http.Error(w, "failed to create user: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		userId, err = insertResults.LastInsertId()
+		if err != nil {
+			http.Error(w, "failed to login: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 	} else if err != nil {
@@ -148,7 +142,8 @@ func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jwtToken, err := signJWT(googleUser)
+	// Using int here isn't a problem bc the database is 32 bits for the user id
+	jwtToken, err := utils.SignJWT(int(userId))
 	if err != nil {
 		http.Error(w, "failed to sign token: "+err.Error(), http.StatusInternalServerError)
 		return
