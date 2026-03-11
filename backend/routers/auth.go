@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi"
-	"github.com/willqizza/linkfrog/backend/db"
+	"github.com/willqizza/linkfrog/backend/services"
 	"github.com/willqizza/linkfrog/backend/utils"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -110,15 +110,15 @@ func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if user exists or if this is the admin user that needs to be added
-	var userId int64
-	err = db.DB.QueryRowContext(r.Context(), "SELECT id FROM users WHERE email = ?", googleUser.Email).Scan(&userId)
+	userId, err := services.GetUserIdByEmail(r.Context(), googleUser.Email)
 	if err == sql.ErrNoRows {
 		// Check if any users exist at all
-		var count int
-		if err = db.DB.QueryRowContext(r.Context(), "SELECT COUNT(*) FROM users").Scan(&count); err != nil {
+		count, err := services.GetTotalUsers(r.Context())
+		if err != nil {
 			http.Error(w, "database error: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
+
 		if count > 0 {
 			// User is not whitelisted
 			http.Redirect(w, r, os.Getenv("AUTH_REDIRECT_URL")+"?error=unauthorized", http.StatusTemporaryRedirect)
@@ -126,15 +126,9 @@ func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// First user is an admin user and can be inserted
-		insertResults, err := db.DB.ExecContext(r.Context(), "INSERT INTO users (email) VALUES (?)", googleUser.Email)
+		userId, err = services.WhitelistUser(r.Context(), googleUser.Email)
 		if err != nil {
 			http.Error(w, "failed to create user: "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		userId, err = insertResults.LastInsertId()
-		if err != nil {
-			http.Error(w, "failed to login: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 	} else if err != nil {
@@ -142,8 +136,7 @@ func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Using int here isn't a problem bc the database is 32 bits for the user id
-	jwtToken, err := utils.SignJWT(int(userId))
+	jwtToken, err := utils.SignJWT(userId)
 	if err != nil {
 		http.Error(w, "failed to sign token: "+err.Error(), http.StatusInternalServerError)
 		return
