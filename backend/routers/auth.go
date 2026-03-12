@@ -168,14 +168,12 @@ func handleInvite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = mail.ParseAddress(payload.Email)
-	if err != nil {
+	if _, err = mail.ParseAddress(payload.Email); err != nil {
 		utils.WriteJSON(w, 400, map[string]string{"error": "Invalid payload"})
 		return
 	}
 
-	_, err = services.GetUserIdByEmail(r.Context(), payload.Email)
-	if err == nil {
+	if _, err = services.GetUserIdByEmail(r.Context(), payload.Email); err == nil {
 		utils.WriteJSON(w, 409, map[string]string{"error": "User already exists"})
 		return
 	} else if err != sql.ErrNoRows {
@@ -183,8 +181,7 @@ func handleInvite(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = services.WhitelistUser(r.Context(), payload.Email)
-	if err != nil {
+	if _, err = services.WhitelistUser(r.Context(), payload.Email); err != nil {
 		utils.WriteJSON(w, 500, map[string]string{"error": "An error occurred while attempting to whitelist the email"})
 		return
 	}
