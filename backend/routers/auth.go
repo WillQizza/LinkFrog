@@ -35,6 +35,7 @@ func authRouter() chi.Router {
 
 	router.Get("/google", handleGoogleLogin)
 	router.Get("/google/callback", handleGoogleCallback)
+	router.Post("/invite", handleInvite)
 
 	return router
 }
@@ -50,7 +51,7 @@ func generateState() (string, error) {
 func handleGoogleLogin(w http.ResponseWriter, r *http.Request) {
 	state, err := generateState()
 	if err != nil {
-		http.Error(w, "failed to generate state", http.StatusInternalServerError)
+		utils.WriteJSON(w, 500, map[string]string{"error": "Failed to generate state"})
 		return
 	}
 
@@ -79,33 +80,33 @@ func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil || stateCookie.Value != r.URL.Query().Get("state") {
-		http.Error(w, "invalid state", http.StatusBadRequest)
+		utils.WriteJSON(w, 400, map[string]string{"error": "Invalid state"})
 		return
 	}
 
 	code := r.URL.Query().Get("code")
 	if code == "" {
-		http.Error(w, "missing code", http.StatusBadRequest)
+		utils.WriteJSON(w, 400, map[string]string{"error": "Missing code"})
 		return
 	}
 
 	token, err := googleOAuthConfig.Exchange(r.Context(), code)
 	if err != nil {
-		http.Error(w, "failed to exchange token: "+err.Error(), http.StatusInternalServerError)
+		utils.WriteJSON(w, 500, map[string]string{"error": "Failed to exchange token"})
 		return
 	}
 
 	client := googleOAuthConfig.Client(r.Context(), token)
 	resp, err := client.Get("https://www.googleapis.com/oauth2/v3/userinfo")
 	if err != nil {
-		http.Error(w, "failed to get user info: "+err.Error(), http.StatusInternalServerError)
+		utils.WriteJSON(w, 500, map[string]string{"error": "Failed to get user info"})
 		return
 	}
 	defer resp.Body.Close()
 
 	var googleUser googleApiUserInfo
 	if err := json.NewDecoder(resp.Body).Decode(&googleUser); err != nil {
-		http.Error(w, "failed to decode user info: "+err.Error(), http.StatusInternalServerError)
+		utils.WriteJSON(w, 500, map[string]string{"error": "Failed to decode user info"})
 		return
 	}
 
@@ -115,7 +116,7 @@ func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 		// Check if any users exist at all
 		count, err := services.GetTotalUsers(r.Context())
 		if err != nil {
-			http.Error(w, "database error: "+err.Error(), http.StatusInternalServerError)
+			utils.WriteJSON(w, 500, map[string]string{"error": "Database error"})
 			return
 		}
 
@@ -128,17 +129,17 @@ func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 		// First user is an admin user and can be inserted
 		userId, err = services.WhitelistUser(r.Context(), googleUser.Email)
 		if err != nil {
-			http.Error(w, "failed to create user: "+err.Error(), http.StatusInternalServerError)
+			utils.WriteJSON(w, 500, map[string]string{"error": "Failed to create user"})
 			return
 		}
 	} else if err != nil {
-		http.Error(w, "database error: "+err.Error(), http.StatusInternalServerError)
+		utils.WriteJSON(w, 500, map[string]string{"error": "Database error"})
 		return
 	}
 
 	jwtToken, err := utils.SignJWT(userId)
 	if err != nil {
-		http.Error(w, "failed to sign token: "+err.Error(), http.StatusInternalServerError)
+		utils.WriteJSON(w, 500, map[string]string{"error": "Failed to sign token"})
 		return
 	}
 
@@ -152,4 +153,8 @@ func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 		Expires:  time.Now().Add(24 * time.Hour),
 	})
 	http.Redirect(w, r, os.Getenv("AUTH_REDIRECT_URL"), http.StatusTemporaryRedirect)
+}
+
+func handleInvite(w http.ResponseWriter, r *http.Request) {
+
 }

@@ -27,9 +27,7 @@ func handleGetLinks(w http.ResponseWriter, r *http.Request) {
 
 	links, err := services.GetLinksByUser(r.Context(), user)
 	if err != nil {
-		utils.WriteJSON(w, 500, map[string]string{
-			"error": "An error occurred while attempting to retrieve your links",
-		})
+		utils.WriteJSON(w, 500, map[string]string{"error": "An error occurred while attempting to retrieve your links"})
 		return
 	}
 
@@ -48,9 +46,7 @@ func handleCreateLink(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&payload)
 	if err != nil {
-		utils.WriteJSON(w, 400, map[string]string{
-			"error": "Invalid Payload",
-		})
+		utils.WriteJSON(w, 400, map[string]string{"error": "Invalid Payload"})
 		return
 	}
 
@@ -59,16 +55,12 @@ func handleCreateLink(w http.ResponseWriter, r *http.Request) {
 	if payload.Code != nil {
 		codeExists, err := services.DoesCodeExist(r.Context(), *payload.Code)
 		if err != nil {
-			utils.WriteJSON(w, 500, map[string]string{
-				"error": "An error occurred while attempting to retrieve existing codes",
-			})
+			utils.WriteJSON(w, 500, map[string]string{"error": "An error occurred while attempting to retrieve existing codes"})
 			return
 		}
 
 		if codeExists {
-			utils.WriteJSON(w, 409, map[string]string{
-				"error": "The code requested already exists",
-			})
+			utils.WriteJSON(w, 409, map[string]string{"error": "The code requested already exists"})
 			return
 		}
 
@@ -80,9 +72,7 @@ func handleCreateLink(w http.ResponseWriter, r *http.Request) {
 
 			codeExists, err := services.DoesCodeExist(r.Context(), code)
 			if err != nil {
-				utils.WriteJSON(w, 500, map[string]string{
-					"error": "An error occurred while attempting to retrieve existing codes",
-				})
+				utils.WriteJSON(w, 500, map[string]string{"error": "An error occurred while attempting to retrieve existing codes"})
 				return
 			}
 
@@ -94,9 +84,7 @@ func handleCreateLink(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !goodCode {
-		utils.WriteJSON(w, 500, map[string]string{
-			"error": "Unable to autogenerate a code. Please try again later.",
-		})
+		utils.WriteJSON(w, 500, map[string]string{"error": "Unable to autogenerate a code. Please try again later."})
 		return
 	}
 
@@ -106,9 +94,7 @@ func handleCreateLink(w http.ResponseWriter, r *http.Request) {
 		URL:   payload.Link,
 	})
 	if err != nil {
-		utils.WriteJSON(w, 500, map[string]string{
-			"error": "Unable to create link. Please try again later.",
-		})
+		utils.WriteJSON(w, 500, map[string]string{"error": "Unable to create link. Please try again later."})
 		return
 	}
 
@@ -124,37 +110,27 @@ func handleDeleteLink(w http.ResponseWriter, r *http.Request) {
 
 	link, err := services.GetLinkByCode(r.Context(), path)
 	if err != nil {
-		utils.WriteJSON(w, 500, map[string]string{
-			"error": "An error occurred while attempting to retrieve the link",
-		})
+		utils.WriteJSON(w, 500, map[string]string{"error": "An error occurred while attempting to retrieve the link"})
 		return
 	}
 
 	if link == nil {
-		utils.WriteJSON(w, 404, map[string]string{
-			"error": "Link not found",
-		})
+		utils.WriteJSON(w, 404, map[string]string{"error": "Link not found"})
 		return
 	}
 
 	if link.Owner != user.ID {
-		utils.WriteJSON(w, 403, map[string]string{
-			"error": "You do not have permission to delete this link",
-		})
+		utils.WriteJSON(w, 403, map[string]string{"error": "You do not have permission to delete this link"})
 		return
 	}
 
 	err = services.DeleteLink(r.Context(), path)
 	if err != nil {
-		utils.WriteJSON(w, 500, map[string]string{
-			"error": "An error occurred while attempting to delete the link",
-		})
+		utils.WriteJSON(w, 500, map[string]string{"error": "An error occurred while attempting to delete the link"})
 		return
 	}
 
-	utils.WriteJSON(w, 200, map[string]string{
-		"message": "Successfully deleted link",
-	})
+	utils.WriteJSON(w, 200, map[string]string{"message": "Successfully deleted link"})
 }
 
 func handleRedirect(w http.ResponseWriter, r *http.Request) {
@@ -162,16 +138,12 @@ func handleRedirect(w http.ResponseWriter, r *http.Request) {
 
 	link, err := services.GetLinkByCode(r.Context(), path)
 	if err != nil {
-		utils.WriteJSON(w, 500, map[string]string{
-			"error": "An error occurred while attempting to retrieve the link",
-		})
+		utils.WriteJSON(w, 500, map[string]string{"error": "An error occurred while attempting to retrieve the link"})
 		return
 	}
 
 	if link == nil {
-		utils.WriteJSON(w, 404, map[string]string{
-			"error": "Link not found",
-		})
+		utils.WriteJSON(w, 404, map[string]string{"error": "Link not found"})
 		return
 	}
 
