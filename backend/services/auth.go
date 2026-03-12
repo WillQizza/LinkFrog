@@ -4,20 +4,32 @@ import (
 	"context"
 
 	"github.com/willqizza/linkfrog/backend/db"
+	"github.com/willqizza/linkfrog/backend/models"
 )
 
 func GetTotalUsers(ctx context.Context) (int, error) {
 	var count int
-	if err := db.DB.QueryRowContext(ctx, "SELECT COUNT(*) FROM users").Scan(&count); err != nil {
+	err := db.DB.QueryRowContext(ctx, "SELECT COUNT(*) FROM users").Scan(&count)
+	if err != nil {
 		return 0, err
 	}
 
 	return count, nil
 }
 
+func GetUserByID(ctx context.Context, id int) (*models.User, error) {
+	var user models.User
+	err := db.DB.QueryRowContext(ctx, "SELECT id, email FROM users WHERE id = ?", id).Scan(&user.ID, &user.Email)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
 func GetUserIdByEmail(ctx context.Context, email string) (int, error) {
 	var userId int
-	if err := db.DB.QueryRowContext(ctx, "SELECT id FROM users WHERE email = ?", email).Scan(&userId); err != nil {
+	err := db.DB.QueryRowContext(ctx, "SELECT id FROM users WHERE email = ?", email).Scan(&userId)
+	if err != nil {
 		return 0, err
 	}
 
