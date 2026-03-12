@@ -53,6 +53,11 @@ func handleCreateLink(w http.ResponseWriter, r *http.Request) {
 	var code string
 	goodCode := false
 	if payload.Code != nil {
+		if len(*payload.Code) == 0 {
+			utils.WriteJSON(w, 400, map[string]string{"error": "The code must be at least 1 character long"})
+			return
+		}
+
 		codeExists, err := services.DoesCodeExist(r.Context(), *payload.Code)
 		if err != nil {
 			utils.WriteJSON(w, 500, map[string]string{"error": "An error occurred while attempting to retrieve existing codes"})

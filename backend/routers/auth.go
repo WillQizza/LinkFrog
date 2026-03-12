@@ -6,10 +6,12 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"net/http"
+	"net/mail"
 	"os"
 	"time"
 
 	"github.com/go-chi/chi"
+	"github.com/willqizza/linkfrog/backend/middleware"
 	"github.com/willqizza/linkfrog/backend/services"
 	"github.com/willqizza/linkfrog/backend/utils"
 	"golang.org/x/oauth2"
@@ -35,7 +37,7 @@ func authRouter() chi.Router {
 
 	router.Get("/google", handleGoogleLogin)
 	router.Get("/google/callback", handleGoogleCallback)
-	router.Post("/invite", handleInvite)
+	router.With(middleware.AuthRequired).Post("/invite", handleInvite)
 
 	return router
 }
@@ -156,5 +158,36 @@ func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleInvite(w http.ResponseWriter, r *http.Request) {
+	var payload struct {
+		Email string
+	}
 
+	err := json.NewDecoder(r.Body).Decode(&payload)
+	if err != nil || payload.Email == "" {
+		utils.WriteJSON(w, 400, map[string]string{"error": "Invalid payload"})
+		return
+	}
+
+	_, err = mail.ParseAddress(payload.Email)
+	if err != nil {
+		utils.WriteJSON(w, 400, map[string]string{"error": "Invalid payload"})
+		return
+	}
+
+	_, err = services.GetUserIdByEmail(r.Context(), payload.Email)
+	if err == nil {
+		utils.WriteJSON(w, 409, map[string]string{"error": "User already exists"})
+		return
+	} else if err != sql.ErrNoRows {
+		utils.WriteJSON(w, 500, map[string]string{"error": "An error occurred while attempting to check if the email is already whitelisted"})
+		return
+	}
+
+	_, err = services.WhitelistUser(r.Context(), payload.Email)
+	if err != nil {
+		utils.WriteJSON(w, 500, map[string]string{"error": "An error occurred while attempting to whitelist the email"})
+		return
+	}
+
+	utils.WriteJSON(w, 200, map[string]string{"message": "User invited successfully"})
 }
