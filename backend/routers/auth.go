@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"net/mail"
 	"os"
-	"time"
-
 	"github.com/go-chi/chi"
 	"github.com/willqizza/linkfrog/backend/middleware"
 	"github.com/willqizza/linkfrog/backend/services"
@@ -145,16 +143,7 @@ func handleGoogleCallback(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.SetCookie(w, &http.Cookie{
-		Name:     "token",
-		Value:    jwtToken,
-		Path:     "/",
-		HttpOnly: true,
-		Secure:   true,
-		SameSite: http.SameSiteLaxMode,
-		Expires:  time.Now().Add(24 * time.Hour),
-	})
-	http.Redirect(w, r, os.Getenv("AUTH_REDIRECT_URL"), http.StatusTemporaryRedirect)
+	http.Redirect(w, r, os.Getenv("AUTH_REDIRECT_URL")+"?token="+jwtToken, http.StatusTemporaryRedirect)
 }
 
 func handleInvite(w http.ResponseWriter, r *http.Request) {

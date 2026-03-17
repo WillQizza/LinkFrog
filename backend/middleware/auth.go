@@ -12,15 +12,15 @@ const UserKey = "user"
 
 func AuthRequired(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		jwtCookie, err := r.Cookie("token")
-		if err != nil {
+		authHeader := r.Header.Get("Authorization")
+		if len(authHeader) < 8 || authHeader[:7] != "Bearer " {
 			utils.WriteJSON(w, 401, map[string]string{
 				"error": "Unauthorized",
 			})
 			return
 		}
 
-		userId, err := utils.ParseJWT(jwtCookie.Value)
+		userId, err := utils.ParseJWT(authHeader[7:])
 		if err != nil {
 			utils.WriteJSON(w, 401, map[string]string{
 				"error": "Unauthorized",
