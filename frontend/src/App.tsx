@@ -1,13 +1,19 @@
 import { useEffect, useState } from "react";
 import LoginPage from "./pages/LoginPage";
 import Dashboard from "./pages/Dashboard";
-import { getToken, setToken, clearToken, request } from "./jwt";
+import { getToken, setToken, clearToken } from "./jwt";
+import { getLinks } from "./api";
 
 type AuthState = "authenticated" | "unauthenticated";
 
 export default function App() {
 	const [authState, setAuthState] = useState<AuthState>(getToken() ? "authenticated" : "unauthenticated");
 	const [notWhitelisted, setNotWhitelisted] = useState(false);
+
+	function handleLogout() {
+		clearToken();
+		setAuthState("unauthenticated");
+	}
 
 	useEffect(() => {
 		const params = new URLSearchParams(window.location.search);
@@ -30,7 +36,7 @@ export default function App() {
 		}
 
 		if (getToken()) {
-			request("/api/links")
+			getLinks()
 				.then(response => {
 					if (response.status === 401) {
 						clearToken();
@@ -46,5 +52,5 @@ export default function App() {
 		return <LoginPage unauthorized={notWhitelisted} />;
 	}
 
-	return <Dashboard />;
+	return <Dashboard onLogout={handleLogout} />;
 }

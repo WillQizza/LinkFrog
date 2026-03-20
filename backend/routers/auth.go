@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/mail"
 	"os"
+
 	"github.com/go-chi/chi"
 	"github.com/willqizza/linkfrog/backend/middleware"
 	"github.com/willqizza/linkfrog/backend/services"
@@ -163,7 +164,7 @@ func handleInvite(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if _, err = services.GetUserIdByEmail(r.Context(), payload.Email); err == nil {
-		utils.WriteJSON(w, 409, map[string]string{"error": "User already exists"})
+		utils.WriteJSON(w, 409, map[string]string{"error": "User already whitelisted"})
 		return
 	} else if err != sql.ErrNoRows {
 		utils.WriteJSON(w, 500, map[string]string{"error": "An error occurred while attempting to check if the email is already whitelisted"})

@@ -1,8 +1,8 @@
 package models
 
 type Link struct {
-	ID    int
-	Owner int
-	Path  string
-	URL   string
+	ID    int    `json:"id"`
+	Owner int    `json:"owner"`
+	Path  string `json:"path"`
+	URL   string `json:"url"`
 }

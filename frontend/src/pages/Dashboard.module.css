@@ -1,0 +1,104 @@
+.page {
+	min-height: 100vh;
+	background: #0b1a0d;
+	color: #d4f0d0;
+}
+
+.header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 1.25rem 2rem;
+	border-bottom: 1px solid #1e3d22;
+	background: #0e2011;
+}
+
+.logo {
+	font-size: 1.4rem;
+	font-weight: bold;
+	color: #a8e6a3;
+	letter-spacing: -0.03em;
+}
+
+.headerActions {
+	display: flex;
+	gap: 0.75rem;
+}
+
+.button {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	font-size: 0.85rem;
+	font-weight: bold;
+	font-family: Arial, Helvetica, sans-serif;
+	padding: 0.55rem 1.1rem;
+	border-radius: 4px;
+	border: none;
+	cursor: pointer;
+}
+
+.buttonShorten {
+	background: #1e8c27;
+	color: #fff;
+}
+
+.buttonShorten:hover {
+	background: #25a830;
+}
+
+.buttonInvite {
+	background: transparent;
+	color: #6aad6e;
+	border: 1px solid #2d5a32;
+}
+
+.buttonInvite:hover {
+	background: #132b15;
+	color: #a8e6a3;
+}
+
+.buttonLogout {
+	background: transparent;
+	color: #4d8f52;
+	border: 1px solid #2d5a32;
+	padding: 0.55rem 0.75rem;
+}
+
+.buttonLogout:hover {
+	background: #2a0d0d;
+	color: #e06c6c;
+	border-color: #5a2d2d;
+}
+
+.content {
+	max-width: 860px;
+	margin: 0 auto;
+	padding: 2rem 1.5rem;
+}
+
+.sectionTitle {
+	font-size: 0.75rem;
+	font-weight: bold;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	color: #4d8f52;
+	margin-bottom: 1rem;
+}
+
+.emptyState {
+	text-align: center;
+	padding: 4rem 2rem;
+	color: #4d8f52;
+}
+
+.emptyState p {
+	margin-top: 0.5rem;
+	font-size: 0.9rem;
+}
+
+.linkList {
+	display: flex;
+	flex-direction: column;
+	gap: 0.6rem;
+}

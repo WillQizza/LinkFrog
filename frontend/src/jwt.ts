@@ -12,13 +12,3 @@ export function clearToken() {
     localStorage.removeItem(TOKEN_KEY);
 }
 
-export function request(input: RequestInfo, init?: RequestInit): Promise<Response> {
-    const token = getToken();
-    return fetch(input, {
-        ...init,
-        headers: {
-            ...init?.headers,
-            ...(token ? { "Authorization": "Bearer " + token } : {}),
-        },
-    });
-}
